@@ -9,9 +9,9 @@ import telran.java51.accounting.dao.UserRepository;
 import telran.java51.accounting.dto.RoleDto;
 import telran.java51.accounting.dto.UserCreateDto;
 import telran.java51.accounting.dto.UserDto;
-import telran.java51.accounting.dto.UserExistsException;
-import telran.java51.accounting.dto.UserNotFoundException;
 import telran.java51.accounting.dto.UserUpdateDto;
+import telran.java51.accounting.dto.exceptions.UserExistsException;
+import telran.java51.accounting.dto.exceptions.UserNotFoundException;
 import telran.java51.accounting.model.User;
 import telran.java51.post.dao.PostRepository;
 
@@ -106,7 +106,9 @@ public class UserServiceImpl implements UserService {
 	
 		User user = userRepository.findById(login).orElseThrow(UserNotFoundException::new);
 
-		user.setPassword(password);
+		String newPassword = BCrypt.hashpw(password, BCrypt.gensalt());
+
+		user.setPassword(newPassword);
 		
 		userRepository.save(user);
 		

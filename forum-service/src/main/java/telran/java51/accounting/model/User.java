@@ -24,14 +24,18 @@ public class User {
 	String lastName;
 	Set <String> roles;
 	
+	public User() {
+		
+		this.roles=new HashSet<String>(Set.of("USER"));
+	}
+	
 	public User(String login, String password, String firstName, String lastName) {
 		
 		this.login=login;
 		this.password=password;
 		this.firstName=firstName;
 		this.lastName=lastName;
-		this.roles=new HashSet<String>();
-		this.roles.add("USER");
+		this.roles=new HashSet<String>(Set.of("USER"));
 	}
 	
 	public void addRole (String role) {

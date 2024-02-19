@@ -35,6 +35,37 @@ public class UserController {
 		return userService.registerUser(userCreateDto);
 	}
 	
+	/*
+	 * Существует стандарт разработки Jakarta EE 
+	 * 
+	 * В нем есть интерфейс, предназначенный для безопасности, Principal 
+	 * 
+	 * У него есть прекрасный метод getName().
+	 * 
+	 * То есть мы таким образом получаем login нашего юзера
+	 */
+	
+	
+	/*
+	 * Идея в следующем. Безопасность состоит из трех вещей: аккаунтинга, аутентификации и авторизации
+	 * 
+	 * При этом регистрация пользователя и изменение пароля (логина) относится к аккаунтингу
+	 * 
+	 * Аутентификация - вход на сайт под свим логином и паролем
+	 * 
+	 * Авторизация - добавление ролей и прав
+	 * 
+	 * Когда аутентификация пройдена (проверка логина и пароля), создается объект Principal, он передается в запрос
+	 * Но в Principal есть только имя, пароль этот объект не хранит
+	 * 
+	 * Это сделано специально в целях безопасности. То есть пароль нам нужен только при аутентификации. 
+	 * Если пользователь подтвердил, что это он, то дальше пароль нам не нужен, а его логин нужен
+	 * И мы можем спокойной пользовать объектом principal и его именем
+	 * 
+	 * То есть это специальный инструмент, который не передает пароль, но передает имя
+	 * 
+	 * 
+	 */
 	@PostMapping("/account/login")
 	public UserDto loginUser (Principal principal) {
 		
@@ -69,7 +100,8 @@ public class UserController {
 	}
 	
 	@PutMapping("/account/password")
-	@ResponseStatus(HttpStatus.NO_CONTENT)
+	@ResponseStatus(HttpStatus.NO_CONTENT)//Запрос проходит прекрасно, но у ответа нет содержания 
+	//Новый пароль мы берем из Header запроса, где онобозначен как переменная X-Password
 	public void changePassword(Principal principal, @RequestHeader("X-Password") String newPassword) {
 	userService.changePassword(principal.getName(),newPassword);
 	}
