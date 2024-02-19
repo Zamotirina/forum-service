@@ -9,6 +9,7 @@ import telran.java51.accounting.dao.UserRepository;
 import telran.java51.accounting.dto.RoleDto;
 import telran.java51.accounting.dto.UserCreateDto;
 import telran.java51.accounting.dto.UserDto;
+import telran.java51.accounting.dto.UserExistsException;
 import telran.java51.accounting.dto.UserNotFoundException;
 import telran.java51.accounting.dto.UserUpdateDto;
 import telran.java51.accounting.model.User;
@@ -28,10 +29,26 @@ public class UserServiceImpl implements UserService {
 		return modelMapper.map(user, UserDto.class);
 	}
 
+	
+	/*
+	 * В этом методе мы хэшируем пароль, поскольку мы сохраняем его в базу данных. 
+	 * То есть пароль должен быть известен только пользователю, а в бузу сохраняться хэшированным 
+	 */
 	@Override
 	public UserDto registerUser(UserCreateDto userCreateDto) {
 		
-		User user = new User(userCreateDto.getLogin(),userCreateDto.getPassword(),userCreateDto.getFirstName(),userCreateDto.getLastName());
+		if(userRepository.existsById(userCreateDto.getLogin())) {
+			
+			throw new UserExistsException();
+		}
+		
+		User user = modelMapper.map(userCreateDto, User.class);
+		
+		/*
+		 * Делаем это мы с помощью BCrypt и его метода hashpw() (то есть hash password)
+		 * 
+		 * Метод принимает сам пароль salt - это ключ криптования, который мы тут же генерируем с помощью BCrypt.gensalt()
+		 */
 		
 		String password = BCrypt.hashpw(userCreateDto.getPassword(), BCrypt.gensalt());
 		user.setPassword(password);
