@@ -2,6 +2,8 @@ package telran.java51.accounting.controller;
 
 import java.security.Principal;
 import java.util.Base64;
+import java.util.List;
+import java.util.Set;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -20,6 +22,8 @@ import telran.java51.accounting.dto.RoleDto;
 import telran.java51.accounting.dto.UserCreateDto;
 import telran.java51.accounting.dto.UserDto;
 import telran.java51.accounting.dto.UserUpdateDto;
+import telran.java51.accounting.dto.exceptions.UserForbiddenException;
+import telran.java51.accounting.model.User;
 import telran.java51.accounting.service.UserService;
 
 
@@ -29,67 +33,69 @@ import telran.java51.accounting.service.UserService;
 public class UserController {
 	
 	final UserService userService;
+	List <String> roles=List.of("ADMINISTRATOR", "MODERATOR");
+	
 	
 	@PostMapping("/account/register")
 	public UserDto registerUser (@RequestBody UserCreateDto userCreateDto) {
+
 		return userService.registerUser(userCreateDto);
 	}
 	
-	/*
-	 * Существует стандарт разработки Jakarta EE 
-	 * 
-	 * В нем есть интерфейс, предназначенный для безопасности, Principal 
-	 * 
-	 * У него есть прекрасный метод getName().
-	 * 
-	 * То есть мы таким образом получаем login нашего юзера
-	 */
-	
-	
-	/*
-	 * Идея в следующем. Безопасность состоит из трех вещей: аккаунтинга, аутентификации и авторизации
-	 * 
-	 * При этом регистрация пользователя и изменение пароля (логина) относится к аккаунтингу
-	 * 
-	 * Аутентификация - вход на сайт под свим логином и паролем
-	 * 
-	 * Авторизация - добавление ролей и прав
-	 * 
-	 * Когда аутентификация пройдена (проверка логина и пароля), создается объект Principal, он передается в запрос
-	 * Но в Principal есть только имя, пароль этот объект не хранит
-	 * 
-	 * Это сделано специально в целях безопасности. То есть пароль нам нужен только при аутентификации. 
-	 * Если пользователь подтвердил, что это он, то дальше пароль нам не нужен, а его логин нужен
-	 * И мы можем спокойной пользовать объектом principal и его именем
-	 * 
-	 * То есть это специальный инструмент, который не передает пароль, но передает имя
-	 * 
-	 * 
-	 */
 	@PostMapping("/account/login")
 	public UserDto loginUser (Principal principal) {
 		
 		return userService.findById(principal.getName());
 	}
 	
-	@DeleteMapping("/account/user/{user}")
-	public UserDto deleteById (@PathVariable ("user")  String login) {
-		return userService.deleteById(login);
-	}
 	
+	@DeleteMapping("/account/user/{user}")
+	public UserDto deleteById (Principal principal, @PathVariable("user")  String login) {
+	
+		if(checkRole(principal, roles.subList(0,1)) || checkLogin(principal.getName(), login)) {
+			return userService.deleteById(login);
+		} else {
+			
+			throw new UserForbiddenException();
+		}
+	}
+
 	@PutMapping("/account/user/{user}")
-	public UserDto updateUser (@PathVariable("user")  String login, @RequestBody UserUpdateDto userUpdateDto) {
-		return userService.updateUser(login, userUpdateDto);
+	public UserDto updateUser (Principal principal, @PathVariable("user")  String login, @RequestBody UserUpdateDto userUpdateDto) {
+		
+		if(checkLogin(principal.getName(), login)) {
+			return userService.updateUser(login, userUpdateDto);
+		} else {
+			
+			throw new UserForbiddenException();
+		}
+	
 	}
 	
 	@PutMapping("/account/user/{user}/role/{role}")
-	public RoleDto addRole(@PathVariable("user")  String login, @PathVariable String role) {
-		return userService.addRole(login, role);
+	public RoleDto addRole(Principal principal, @PathVariable("user")  String login, @PathVariable String role) {
+		
+		if(checkRole(principal, roles.subList(0,1))) {
+			return userService.addRole(login, role);
+		} else {
+			
+			throw new UserForbiddenException();
+		}
+
 	}
 	
 	@DeleteMapping("/account/user/{user}/role/{role}")
-	public RoleDto deleteRole(@PathVariable("user")  String login, @PathVariable String role) {
-	return userService.deleteRole(login, role);
+	public RoleDto deleteRole(Principal principal,@PathVariable("user")  String login, @PathVariable String role) {
+	
+		
+		if(checkRole(principal, roles.subList(0,1))) {
+			
+			return userService.deleteRole(login, role);
+		} else {
+			
+			throw new UserForbiddenException();
+		}
+		
 		
 	}
 	
@@ -100,10 +106,28 @@ public class UserController {
 	}
 	
 	@PutMapping("/account/password")
-	@ResponseStatus(HttpStatus.NO_CONTENT)//Запрос проходит прекрасно, но у ответа нет содержания 
-	//Новый пароль мы берем из Header запроса, где онобозначен как переменная X-Password
+	@ResponseStatus(HttpStatus.NO_CONTENT)
 	public void changePassword(Principal principal, @RequestHeader("X-Password") String newPassword) {
-	userService.changePassword(principal.getName(),newPassword);
+	
+			
+			userService.changePassword(principal.getName(),newPassword);
+
+
+	}
+	
+	
+	
+	private boolean checkRole(Principal principal, List <String> roles) {
+		
+		UserDto userDto = userService.findById(principal.getName());
+		
+		return roles.stream().anyMatch(x->userDto.getRoles().contains(x));
+
+	}
+	
+	private boolean checkLogin(String name, String login) {
+		
+		return name.equalsIgnoreCase(login);
 	}
 
 }

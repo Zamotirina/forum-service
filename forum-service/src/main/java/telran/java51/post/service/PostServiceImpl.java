@@ -68,7 +68,7 @@ public class PostServiceImpl implements PostService {
 			 
 		 newPostDto.getTags().forEach(post::addTag);
 			 
-			 
+			 postRepository.save(post);
 			 return modelMapper.map(post, PostDto.class);
 		 }
 		

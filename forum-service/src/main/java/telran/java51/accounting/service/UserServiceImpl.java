@@ -30,10 +30,6 @@ public class UserServiceImpl implements UserService {
 	}
 
 	
-	/*
-	 * В этом методе мы хэшируем пароль, поскольку мы сохраняем его в базу данных. 
-	 * То есть пароль должен быть известен только пользователю, а в бузу сохраняться хэшированным 
-	 */
 	@Override
 	public UserDto registerUser(UserCreateDto userCreateDto) {
 		
@@ -44,11 +40,6 @@ public class UserServiceImpl implements UserService {
 		
 		User user = modelMapper.map(userCreateDto, User.class);
 		
-		/*
-		 * Делаем это мы с помощью BCrypt и его метода hashpw() (то есть hash password)
-		 * 
-		 * Метод принимает сам пароль salt - это ключ криптования, который мы тут же генерируем с помощью BCrypt.gensalt()
-		 */
 		
 		String password = BCrypt.hashpw(userCreateDto.getPassword(), BCrypt.gensalt());
 		user.setPassword(password);
