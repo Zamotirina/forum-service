@@ -165,7 +165,7 @@ public class AuthenticationFilter implements Filter {
 
 	private boolean checkEndPoint(String method, String servletPath) {
 		
-		return !(HttpMethod.POST.matches(method) && servletPath.matches("/account/register/"));//Здесь у нас регулярное выражение
+		return !(HttpMethod.POST.matches(method) && servletPath.matches("/account/register"));//Здесь у нас регулярное выражение
 	}
 
 	private String[] getCredentials(String header) {
