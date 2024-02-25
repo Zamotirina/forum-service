@@ -35,8 +35,10 @@ public class PostController {
 	
 
 	@PostMapping("/post/{author}")
-	public PostDto addNewPost(@PathVariable String author, @RequestBody NewPostDto newPostDto) {
-		return postService.addNewPost(author, newPostDto);
+	public PostDto addNewPost(Principal principal, @PathVariable String author, @RequestBody NewPostDto newPostDto) {
+		//return postService.addNewPost(author, newPostDto);
+		
+		return postService.addNewPost(principal.getName(), newPostDto);
 	}
 
 	@GetMapping("/post/{id}")
@@ -61,9 +63,11 @@ public class PostController {
 	}
 
 	@PutMapping("/post/{id}/comment/{author}")
-	public PostDto addComment(@PathVariable String id, @PathVariable String author,
+	public PostDto addComment(Principal principal, @PathVariable String id, @PathVariable String author,
 			@RequestBody NewCommentDto newCommentDto) {
-		return postService.addComment(id, author, newCommentDto);
+	//	return postService.addComment(id, author, newCommentDto);
+		
+		return postService.addComment(id, principal.getName(), newCommentDto);
 	}
 
 	@PutMapping("/post/{id}/like")
