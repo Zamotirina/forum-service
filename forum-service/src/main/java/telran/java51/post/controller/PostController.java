@@ -29,14 +29,14 @@ import telran.java51.post.service.PostService;
 @RequestMapping("/forum")
 public class PostController {
 
-	final UserService userService;
+
 	final PostService postService;
-	List <String> roles=List.of("ADMINISTRATOR", "MODERATOR");
+
 	
 
 	@PostMapping("/post/{author}")
-	public PostDto addNewPost(Principal principal, @PathVariable String author, @RequestBody NewPostDto newPostDto) {
-		return postService.addNewPost(principal.getName(), newPostDto);
+	public PostDto addNewPost(@PathVariable String author, @RequestBody NewPostDto newPostDto) {
+		return postService.addNewPost(author, newPostDto);
 	}
 
 	@GetMapping("/post/{id}")
@@ -45,33 +45,25 @@ public class PostController {
 	}
 
 	@DeleteMapping("/post/{id}")
-	public PostDto removePost(Principal principal, @PathVariable String id) {
+	public PostDto removePost(@PathVariable String id) {
 		
-		if(checkRole(principal, roles.subList(0,2)) || checkLogin(principal.getName(), postService.findPostById(id).getAuthor())) {
 			return postService.removePost(id);
-		} else {
-			
-			throw new UserForbiddenException();
-		}
+	
 	
 	}
 
 	@PutMapping("/post/{id}")
-	public PostDto updatePost(Principal principal, @PathVariable String id, @RequestBody NewPostDto newPostDto) {
+	public PostDto updatePost(@PathVariable String id, @RequestBody NewPostDto newPostDto) {
 		
-		if(checkRole(principal, roles.subList(0,1)) || checkLogin(principal.getName(), postService.findPostById(id).getAuthor())) {
 			return postService.updatePost(id, newPostDto);
-		} else {
-			
-			throw new UserForbiddenException();
-		}
+		
 		
 	}
 
 	@PutMapping("/post/{id}/comment/{author}")
-	public PostDto addComment(Principal principal, @PathVariable String id, @PathVariable String author,
+	public PostDto addComment(@PathVariable String id, @PathVariable String author,
 			@RequestBody NewCommentDto newCommentDto) {
-		return postService.addComment(id, principal.getName(), newCommentDto);
+		return postService.addComment(id, author, newCommentDto);
 	}
 
 	@PutMapping("/post/{id}/like")
@@ -96,20 +88,7 @@ public class PostController {
 		return postService.findPostsByPeriod(datePeriodDto);
 	}
 
-	
-	
-	private boolean checkRole(Principal principal, List <String> roles) {
-		
-		UserDto userDto = userService.findById(principal.getName());
-		
-		return roles.stream().anyMatch(x->userDto.getRoles().contains(x));
 
-	}
-	
-	private boolean checkLogin(String name, String login) {
-		
-		return name.equalsIgnoreCase(login);
-	}
-	
+
 	
 }

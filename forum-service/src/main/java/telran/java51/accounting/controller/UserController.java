@@ -33,7 +33,6 @@ import telran.java51.accounting.service.UserService;
 public class UserController {
 	
 	final UserService userService;
-	List <String> roles=List.of("ADMINISTRATOR", "MODERATOR");
 	
 	
 	@PostMapping("/account/register")
@@ -41,6 +40,7 @@ public class UserController {
 
 		return userService.registerUser(userCreateDto);
 	}
+	
 	
 	@PostMapping("/account/login")
 	public UserDto loginUser (Principal principal) {
@@ -50,51 +50,35 @@ public class UserController {
 	
 	
 	@DeleteMapping("/account/user/{user}")
-	public UserDto deleteById (Principal principal, @PathVariable("user")  String login) {
-	
-		if(checkRole(principal, roles.subList(0,1)) || checkLogin(principal.getName(), login)) {
+	public UserDto deleteById (@PathVariable("user")  String login) {
+
 			return userService.deleteById(login);
-		} else {
-			
-			throw new UserForbiddenException();
-		}
+
 	}
 
 	@PutMapping("/account/user/{user}")
-	public UserDto updateUser (Principal principal, @PathVariable("user")  String login, @RequestBody UserUpdateDto userUpdateDto) {
-		
-		if(checkLogin(principal.getName(), login)) {
+	public UserDto updateUser ( @PathVariable("user")  String login, @RequestBody UserUpdateDto userUpdateDto) {
+	
 			return userService.updateUser(login, userUpdateDto);
-		} else {
-			
-			throw new UserForbiddenException();
-		}
+
 	
 	}
 	
 	@PutMapping("/account/user/{user}/role/{role}")
-	public RoleDto addRole(Principal principal, @PathVariable("user")  String login, @PathVariable String role) {
+	public RoleDto addRole(@PathVariable("user")  String login, @PathVariable String role) {
 		
-		if(checkRole(principal, roles.subList(0,1))) {
 			return userService.addRole(login, role);
-		} else {
-			
-			throw new UserForbiddenException();
-		}
+
 
 	}
 	
 	@DeleteMapping("/account/user/{user}/role/{role}")
-	public RoleDto deleteRole(Principal principal,@PathVariable("user")  String login, @PathVariable String role) {
+	public RoleDto deleteRole(@PathVariable("user")  String login, @PathVariable String role) {
 	
-		
-		if(checkRole(principal, roles.subList(0,1))) {
+
 			
 			return userService.deleteRole(login, role);
-		} else {
-			
-			throw new UserForbiddenException();
-		}
+	
 		
 		
 	}
@@ -115,19 +99,6 @@ public class UserController {
 
 	}
 	
-	
-	
-	private boolean checkRole(Principal principal, List <String> roles) {
-		
-		UserDto userDto = userService.findById(principal.getName());
-		
-		return roles.stream().anyMatch(x->userDto.getRoles().contains(x));
 
-	}
-	
-	private boolean checkLogin(String name, String login) {
-		
-		return name.equalsIgnoreCase(login);
-	}
 
 }

@@ -8,6 +8,7 @@ import javax.swing.Spring;
 
 import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.beans.factory.parsing.PassThroughSourceExtractor;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.scheduling.support.SimpleTriggerContext;
 import org.springframework.stereotype.Component;
@@ -26,8 +27,9 @@ import telran.java51.accounting.dto.exceptions.UserNotFoundException;
 import telran.java51.accounting.model.User;
 
 
-@Component 
+@Component
 @RequiredArgsConstructor
+@Order(10)
 public class AuthenticationFilter implements Filter {
 
 	final UserRepository userRepository;
@@ -77,9 +79,15 @@ public class AuthenticationFilter implements Filter {
 	private boolean checkEndPoint(String method, String servletPath) {
 
 		
-		return !((HttpMethod.POST.matches(method) && servletPath.matches("/account/register")) || 
-				(HttpMethod.POST.matches(method)&&servletPath.contains("/forum/posts/")) ||
-						(HttpMethod.GET.matches(method)&&servletPath.contains("/forum/posts/")));
+//		return !((HttpMethod.POST.matches(method) && servletPath.matches("/account/register")) || 
+//				(HttpMethod.POST.matches(method)&&servletPath.contains("/forum/posts/")) ||
+//						(HttpMethod.GET.matches(method)&&servletPath.contains("/forum/posts/")));
+	
+		return !((HttpMethod.POST.matches(method) && servletPath.matches("/account/register")) ||
+				
+				servletPath.matches("/forum/posts/\\w+(/\\w+)?"));
+						
+	
 	}
 	
 	

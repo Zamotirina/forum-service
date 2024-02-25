@@ -2,6 +2,7 @@ package telran.java51.accounting.service;
 
 import org.mindrot.jbcrypt.BCrypt;
 import org.modelmapper.ModelMapper;
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
@@ -17,7 +18,21 @@ import telran.java51.post.dao.PostRepository;
 
 @Service
 @RequiredArgsConstructor
-public class UserServiceImpl implements UserService {
+public class UserServiceImpl implements UserService, CommandLineRunner {
+	
+	/*
+	 * Интерфейс CommandLineRunner мы добавили позже, чтобы имет возможность добавить администратора, который бы смог раздать первые роли
+	 * 
+	 * Иначе мы попадали в тупик, когда роли на форуме может раздавать только администратор, а администратора у нас еще и нет
+	 * 
+	 * В целом его можно реализовать в разных частях приложения. 
+	 * 
+	 * Но его смысл в том, что у него есть метод run(), который запускается сразу после создания аппликационного контекста.
+	 * 
+	 * В нашем случае (сам метод прописан ниже), этот метод запускается, проверяет, если ли среди нагих пользователей уже пользователь с логином admin
+	 * 
+	 * Если такого пользователя нет, то он его добавляет и дает ему роли администратора и модератора
+	 */
 
 	final UserRepository userRepository;
 	final ModelMapper modelMapper;
@@ -102,6 +117,21 @@ public class UserServiceImpl implements UserService {
 		user.setPassword(newPassword);
 		
 		userRepository.save(user);
+		
+	}
+
+
+	@Override
+	public void run(String... args) throws Exception {
+		
+		if(!userRepository.existsById("admin")) {
+			
+			String password = BCrypt.hashpw("admin", BCrypt.gensalt());
+			User user = new User("admin", password,"","");
+			user.addRole("ADMINISTRATOR");
+			user.addRole("MODERATOR");
+			userRepository.save(user);
+		}
 		
 	}
 
