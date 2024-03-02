@@ -2,6 +2,7 @@ package telran.java51.accounting.service;
 
 import org.mindrot.jbcrypt.BCrypt;
 import org.modelmapper.ModelMapper;
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
@@ -17,7 +18,7 @@ import telran.java51.post.dao.PostRepository;
 
 @Service
 @RequiredArgsConstructor
-public class UserServiceImpl implements UserService {
+public class UserServiceImpl implements UserService, CommandLineRunner {
 
 	final UserRepository userRepository;
 	final ModelMapper modelMapper;
@@ -111,6 +112,21 @@ public class UserServiceImpl implements UserService {
 		user.setPassword(newPassword);
 		
 		userRepository.save(user);
+		
+	}
+
+
+	@Override
+	public void run(String... args) throws Exception {
+		
+		if(!userRepository.existsById("admin")) {
+			
+			String password = BCrypt.hashpw("admin", BCrypt.gensalt());
+			User user = new User("admin", password,"","");
+			user.addRole("ADMINISTRATOR");
+			user.addRole("MODERATOR");
+			userRepository.save(user);
+		}
 		
 	}
 
