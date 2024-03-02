@@ -42,7 +42,13 @@ public class UpdatePostByOwner implements Filter {
 		String [] array = request.getServletPath().split("/");
 		String postId = array[array.length-1];
 		
-		Post post = postRepository.findById(postId).orElseThrow(PostNotFoundException::new);
+		Post post = postRepository.findById(postId).orElse(null);
+		
+		if(post==null) {
+			
+			response.sendError(404);
+			return;
+		}
 	
 		if(!principal.getName().equalsIgnoreCase(post.getAuthor())) {
 			

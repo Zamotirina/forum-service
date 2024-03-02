@@ -21,7 +21,7 @@ import telran.java51.accounting.model.User;
 @Component
 @RequiredArgsConstructor
 @Order(30)
-public class UpdateByOwnerFilter implements Filter {
+public class UpdateAndAddByOwnerFilter implements Filter {
 
 	@Override
 	public void doFilter(ServletRequest req, ServletResponse resp, FilterChain chain)
@@ -47,8 +47,17 @@ public class UpdateByOwnerFilter implements Filter {
 		chain.doFilter(request, response);
 
 	}
+	
+	/*
+	 * Этим методом мы делаем так, чтобы
+	 * (1) обновить пост мог только пользователь
+	 * (2) добавить пост мог только автор добавляемого поста
+	 * (3) оставить комментарий мог только автор добавляемого комментария
+	 */
 
 	private boolean checkEndPoint(String method, String servletPath) {
-		return HttpMethod.PUT.matches(method)  &&  servletPath.matches("/account/user/\\w+");
+		return (HttpMethod.PUT.matches(method)  &&  servletPath.matches("/account/user/\\w+"))
+				|| (HttpMethod.POST.matches(method)  &&  servletPath.matches("/forum/post/\\w+"))
+				|| (HttpMethod.PUT.matches(method)  &&  servletPath.matches("/forum/post/\\w+/comment/\\w+"));
 	}
 }

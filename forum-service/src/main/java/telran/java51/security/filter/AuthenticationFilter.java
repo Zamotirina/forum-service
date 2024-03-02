@@ -3,6 +3,9 @@ package telran.java51.security.filter;
 import java.io.IOException;
 import java.security.Principal;
 import java.util.Base64;
+import java.util.Set;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 import javax.swing.Spring;
 
@@ -25,6 +28,7 @@ import lombok.RequiredArgsConstructor;
 import telran.java51.accounting.dao.UserRepository;
 import telran.java51.accounting.dto.exceptions.UserNotFoundException;
 import telran.java51.accounting.model.User;
+import telran.java51.security.model.UserAddition;
 
 
 @Component
@@ -56,9 +60,14 @@ public class AuthenticationFilter implements Filter {
 					throw new RuntimeException();
 				}
 				
+				/*
+				 * 
+				 * //[1] Строчку ниже тоже отредактировали позже, когда написали класс UserAddidion
+				 * дополнили иннер-класс WrappedRequest и дополнили его конструктор
+				 */
 		
 				
-				request=new WrappedRequest(request, user.getLogin());
+				request=new WrappedRequest(request, user.getLogin(),user.getRoles().stream().map(x->x.name()).collect(Collectors.toSet()));
 				
 			} catch (Exception e) {
 
@@ -104,16 +113,21 @@ public class AuthenticationFilter implements Filter {
 		
 		private String login;
 		
-		public WrappedRequest(HttpServletRequest request, String login) {
+		private Set <String> roles;//[1] Добавили позже, после того как прописали класс UserAddition, чтобы оптимизировать код и меньше лазать в базу данных с запросами
+		
+		public WrappedRequest(HttpServletRequest request, String login, Set <String> roles) {
 			super(request);
 			
 			this.login=login;
+			this.roles=roles; //[1] Тоже добавили позже
 		}
 		
 		@Override
 		public Principal getUserPrincipal() {
 			
-			return () -> login;
+		//	return () -> login; //[1]
+			
+			return new UserAddition(login, roles);
 		}
 
 	}

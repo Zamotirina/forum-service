@@ -20,14 +20,15 @@ import telran.java51.accounting.model.User;
 import telran.java51.post.dao.PostRepository;
 import telran.java51.post.dto.exceptions.PostNotFoundException;
 import telran.java51.post.model.Post;
+import telran.java51.security.model.UserAddition;
 
 @Component
-@RequiredArgsConstructor
+@RequiredArgsConstructor 
 @Order(50)
 public class DeletePostFilter implements Filter {
 
 	final PostRepository postRepository;
-	final UserRepository userRepository;
+	//final UserRepository userRepository;//[1]
 	
 	@Override
 	public void doFilter(ServletRequest req, ServletResponse resp, FilterChain chain)
@@ -38,18 +39,36 @@ public class DeletePostFilter implements Filter {
 		HttpServletResponse response = (HttpServletResponse) resp;
 	
 		if (checkEndPoint(request.getMethod(), request.getServletPath())) {
-		
-		Principal principal = request.getUserPrincipal();
+			
+		UserAddition userAddition = (UserAddition) request.getUserPrincipal();//[1]
+		//User user  = userRepository.findById(request.getUserPrincipal().getName()).get();
 		String [] array = request.getServletPath().split("/");
 
 		String postId =  array[array.length-1];
- 	
-		User user = userRepository.findById(request.getUserPrincipal().getName()).get();
 		
-		Post post = postRepository.findById(postId).orElseThrow(PostNotFoundException::new);
-				
-		if(!(user.getRoles().contains("MODERATOR") || principal.getName().equalsIgnoreCase(post.getAuthor()))) {
+		/*
+		 * Мы здесь делаем именно так, то есть оставляем null, а не отправляем PostNotFoundException, так как иначе
+		 * 
+		 *  система вернет не 404 ошибку, а 500, так как фильтры находятся до котроллера
+		 *  
+		 *  Поэтому любой Exception, который прерывает работу фильтра и не дает дойти дальше, будет трасформирован томкатом как 500-ая ошибка
+		 *  
+		 *  Соответственно надо делать так, либо добавлять try -catch и отлавливать одну ошибку и отправлять через response.send() другую. Мы так сделалаи в классе AuthenticationFilter
+		 */
+ 	
+		Post post = postRepository.findById(postId).orElse(null);
+		
+		if(post==null) {
 			
+			response.sendError(404);
+			
+			return;
+		}
+				
+	//	if(!(user.getRoles().contains("MODERATOR") || user.getLogin().equalsIgnoreCase(post.getAuthor()))) { //[1]
+			
+			if(!(userAddition.getRoles().contains("MODERATOR") || userAddition.getName().equalsIgnoreCase(post.getAuthor()))) { //[1]
+
 			response.sendError(403, "Permisssion denied");
 			return;
 		}

@@ -17,14 +17,15 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import telran.java51.accounting.dao.UserRepository;
 import telran.java51.accounting.model.User;
+import telran.java51.security.model.UserAddition;
 
 @Component
-@RequiredArgsConstructor
+//@RequiredArgsConstructor //[1] //Закомментили позже, когда добавили класс UserAddition
 @Order(40)
 
 public class DeleteUser implements Filter {
 
-	final UserRepository userRepository;
+	//final UserRepository userRepository;//[1]
 	
 	@Override
 	public void doFilter(ServletRequest req, ServletResponse resp, FilterChain chain)
@@ -37,14 +38,15 @@ public class DeleteUser implements Filter {
 		
 		if (checkEndPoint(request.getMethod(), request.getServletPath())) {
 			
-			Principal principal = request.getUserPrincipal();
+			//Principal principal = request.getUserPrincipal();//[1]
 			String [] array = request.getServletPath().split("/");
 			String userName = array[array.length-1];
 			
-			User user = userRepository.findById(request.getUserPrincipal().getName()).get();
+		//	User user = userRepository.findById(request.getUserPrincipal().getName()).get(); //[1]
 			
-			if(!(user.getRoles().contains("ADMINISTRATOR") || principal.getName().equalsIgnoreCase(userName))) {
-				
+			UserAddition userAddition = (UserAddition) request.getUserPrincipal();
+			//if(!(user.getRoles().contains("ADMINISTRATOR") || principal.getName().equalsIgnoreCase(userName))) {//[1]
+				if(!(userAddition.getRoles().contains("ADMINISTRATOR") || userAddition.getName().equalsIgnoreCase(userName))) {//[1]
 				response.sendError(403, "Permisssion denied");
 				return;
 			}

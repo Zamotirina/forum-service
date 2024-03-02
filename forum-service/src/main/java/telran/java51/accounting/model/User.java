@@ -22,11 +22,11 @@ public class User {
 	String firstName;
 	@Setter
 	String lastName;
-	Set <String> roles;
+	Set <Roles>roles;
 	
 	public User() {
 		
-		this.roles=new HashSet<String>(Set.of("USER"));
+		this.roles=new HashSet<Roles>(Set.of(Roles.USER));
 	}
 	
 	public User(String login, String password, String firstName, String lastName) {
@@ -35,18 +35,20 @@ public class User {
 		this.password=password;
 		this.firstName=firstName;
 		this.lastName=lastName;
-		this.roles=new HashSet<String>(Set.of("USER"));
+		this.roles=new HashSet<Roles>(Set.of(Roles.USER));
 	}
 	
 	public void addRole (String role) {
 		
-		this.roles.add(role.toUpperCase());
+		//this.roles.add(role.toUpperCase());
+		
+		this.roles.add(Roles.valueOf(role.toUpperCase()));
 		
 	}
 	
 	public void deleteRole (String role) {
 		
-		this.roles.remove(role.toUpperCase());
+		this.roles.remove(Roles.valueOf(role.toUpperCase()));
 		
 	}
 
